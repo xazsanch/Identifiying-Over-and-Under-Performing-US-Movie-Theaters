@@ -52,10 +52,10 @@ def calculate_threshold_values(prob, y):
 
 def score_table(model, y_true,y_pred):
     print(type(model).__name_)
-    print(f'Accuracy Score: {}'.format(accuracy_score(y_true,y_pred)))
-    print(f'Precision Score: {}'.format(precision_score(y_true,y_pred)))
-    print(f'F1 Score: {}'.format(f1_score(y_true,y_pred)))
-    print(f'Recall Score: {}'.format(recall_score(y_true,y_pred)))
+    print('Accuracy Score: {}'.format(accuracy_score(y_true,y_pred)))
+    print('Precision Score: {}'.format(precision_score(y_true,y_pred)))
+    print('F1 Score: {}'.format(f1_score(y_true,y_pred)))
+    print('Recall Score: {}'.format(recall_score(y_true,y_pred)))
 
 def plot_precision_recall(ax, df,random=False):
     ax.plot(df.tpr,df.precision, label='precision/recall')
