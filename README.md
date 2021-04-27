@@ -26,7 +26,7 @@ So if Theatre X was playing Y Genre, and on average, grossed $1,000 dollars for 
 * Of those 200k records, around 80k Over Indexed
 
 ## EDA
-![Distribution](./images/Distribution_Num_Locs_OI.png)
+![Distribution](./images/Distribution.png)
 Looking at the distribution of Theatres+Films that did Over-Index, the large majority of data falls around the 20-film mark, meaning if a location played all 54 Film's in the dataset, almost half of them over performed.
 
 Here is a breakdown and an example of what cities have been performing better than their average. 
@@ -123,6 +123,7 @@ These models were:
 * Random Forest (RF)
 * Gradient Boosting (GB)
 
+### Baseline Model
 I wantd to focus on the Precision/Recall tradeoff of my model, to identify the relationship between how my model was identifying False Positives and False Negatives.
 | Model        | LR     | DT     | RF     | GB     |
 |--------------|--------|--------|--------|--------|
@@ -135,7 +136,7 @@ This is acceptable in a few cases:
 1) The theatre in question is possibly the only theatre in X amount of miles, meaning it would be the only location in the area showing the content
 2) Sales and Politics: Film Buyers are the agents responsible for negotiating with the studio, to place the film's in the theatres they work for. They may have set agreements with their theatres to receive certain films, even if the Studio knows it may not be a strong performer or has the opportunity to over-index. 
 
-
+### Threshold - Genre Average Per Location
 
 I iterated my model by tweaking the threshold I had set. I narrowed down the focus from the global average, to a Genre's Average per location. Though this helped course correct my Logistic Regression model, the overall Area Under the Curve metric did decrease slightly
 | Model        | LR     | DT     | RF     | GB     |
@@ -144,6 +145,7 @@ I iterated my model by tweaking the threshold I had set. I narrowed down the foc
 
 ![Iteration2](./images/ROC_AvgGenreLoc.png)
 
+### Threshold - Genre Average, by Market
 
 I utilized some of the geographic features to narrow down my focus even more, looking at a Genre's average within a specific Market (larger than a city, smaller than a state). Though this iteration did not prove to shift my Recall in the right direction.
 
@@ -153,6 +155,9 @@ I utilized some of the geographic features to narrow down my focus even more, lo
 
 ![Iteration3](./images/ROC_AvgGenreMarket.png)
 
+
+### Threshold - Location's Average, by Genre
+
 My threshold that made the most sense, came when focusing directly at a Theatre, and it's Boxoffice for the Genre. This gave me the proper and normalized benchmark needed, to identify if a Film was performing above it's own expectations. 
 
 | Model        | LR     | DT     | RF     | GB     |
@@ -160,6 +165,8 @@ My threshold that made the most sense, came when focusing directly at a Theatre,
 | Recall Score | 0.6818 | 0.7302 | 0.7302 | 0.7265 |
 
 ![Iteration4](./images/ROC_LocGenAvg.png)
+
+### Threshold - Location's Average, by Genre (with GridSearch)
 
 With the proper models in place, it was now time to apply some GridSearch'ing to help tune the hyperparameters and maximize my model's Recall.
 
@@ -171,6 +178,8 @@ Though with the searching that I did, my preliminary findings turned out to be l
 
 ![Iteration4 with Grid Search](./images/ROC_LocGenAvg_GS.png)
 
+### Threshold - Location's Average, by Genre (with GridSearch, Undersampled data)
+
 Lastly, I applied Undersampling to the data set, to see how it would affec the model's performance. I chose to undersample the majority class, as I wanted to avoid duplicates in my data, which is what the outcome would have been if the minority class was Oversampled. Again, this method yielded more losses, and so I returned to my default Classification models for a Location's Genre Avg. 
 
 
@@ -178,7 +187,7 @@ Lastly, I applied Undersampling to the data set, to see how it would affec the m
 |--------------|--------|--------|--------|--------|
 | Recall Score | 0.6474 | 0.6685 | 0.6824 | 0.6873 |
 
-![Iteration4 Undersampled with Grid Search](./images/ROC_LocGenAvg_UN_GS.png)
+![Iteration4 Undersampled with Grid Search](./images/ROC_LocGenAvg_UN.png)
 
 Utilizing the RF model without any GridSearch hyperparameters, I was able to establish a Confusion Matrix, set a threshold of 0.5. Because each individual theatre operates within it's own constraints of pricing, there were too many moving targets to apply a blanket cost-profit matrix to the data set. 
 
@@ -204,7 +213,7 @@ These feautures, along with Genre, Rating, and Season, could help redefine new, 
 
 Through K-Means++ clustering, I was able to identify 13 distinct clusters for my 54 films. Through a Silhouette Score plot, I was able to identify the right number of clusters. (*Silhoutte Score is a measure of how similiar an object is to its own cluster compared ot other clusters*)
 
-![SilScore](./images/Sil_FMFull.png)
+![SilScore](./images/Sil_Score.png)
 
 If I did not set this plot far out enough, I would not have caught the uptick in the silhoutte value after the 10 cluster mark. Through domain knowledge and industry experience, I was able to spot-check the accuracy of my iterations of clustering, to help ensure that what was segmented, made sense.
 
@@ -225,7 +234,7 @@ I established a minimum document frequency of 0.04, which yield 48 text feautres
 
 Principal Component Analysis took this matrix of values, and reduced the dimensionality of this matrix to reduce this matrix of 54x48, down to 54x2. My goal in reducing the amount of features down to two latent feautres, was to capture all the relevent points in a 2-Dimensional plot. 
 
-![PCAPlot](./images/PCA_overview.png)
+![PCAPlot](./images/PCA_plot.png)
 
 Though there is a tight center of Film's captured within the center of the plot, there were still a few outliers in all directions of the plot. 
 
@@ -239,7 +248,7 @@ I inputted this data into my Model Scoring function, but unfortuntaely this iter
 |--------------|--------|--------|--------|--------|
 | Recall Score | 0.5574 | 0.6411 | 0.6411 | 0.6403 |
 
-![PCAPlot](./images/ROC_PCA_Clustering.png)
+![ROCPCA](./images/ROC_PCA.png)
 
 ## Results and Findings
 After the failed iteration through NLP, I came to the conclusion that my Random Forest model, with out-of-the-box parameters, with a threshold based on a Location's Average by Genre, netted me the model with the highest Recall score. 
