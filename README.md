@@ -187,7 +187,7 @@ Lastly, I applied Undersampling to the data set, to see how it would affec the m
 |--------------|--------|--------|--------|--------|
 | Recall Score | 0.6474 | 0.6685 | 0.6824 | 0.6873 |
 
-![Iteration4 Undersampled with Grid Search](./images/ROC_LocGenAvg_UN.png)
+![Iteration4 Undersampled with Grid Search](./images/ROC_LocGenAvg_Un.png)
 
 Utilizing the RF model without any GridSearch hyperparameters, I was able to establish a Confusion Matrix, set a threshold of 0.5. Because each individual theatre operates within it's own constraints of pricing, there were too many moving targets to apply a blanket cost-profit matrix to the data set. 
 
@@ -198,7 +198,7 @@ With my selected Random Forest Model, I am missing out on only 6% of the data po
 Of the True Positive caess, I am correctly identifying 73% of those values (Recall).
 Of the Predicted False cases, I am identifying 87% of those values correctly.
 
-![Confusion Matrix](./images/confusion_matrix.png)
+![Confusion Matrix](./images/Confusion_Matrix.png)
 
 
 ## Movie Clustering
