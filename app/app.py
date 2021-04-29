@@ -1,32 +1,45 @@
-# https://github.com/NakulLakhotia/deploheroku/blob/master/app.py
+# save this as app.py
+import pandas as pd
+import plotly.graph_objs as go
+import plotly.express as px
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
 
-#import libraries
-import numpy as np
-from flask import Flask, request, jsonify, render_template
-import pickle
+# Data
+df = px.data.gapminder().query("year==2007")
 
-#Initialize the flask App
-app = Flask(__name__)
-model = pickle.load(open('model.pkl', 'rb'))
+df = df.rename(columns=dict(pop="Population",
+                            gdpPercap="GDP per Capita",
+                            lifeExp="Life Expectancy"))
 
-#default page of our web-app
-@app.route('/')
-def home():
-    return render_template('index.html')
+cols_dd = ["Population", "GDP per Capita", "Life Expectancy"]
 
-#To use the predict button in our web-app
-@app.route('/predict',methods=['POST'])
-def predict():
-    '''
-    For rendering results on HTML GUI
-    '''
-    int_features = [float(x) for x in request.form.values()]
-    final_features = [np.array(int_features)]
-    prediction = model.predict(final_features)
+app = dash.Dash()
+app.layout = html.Div([
+    dcc.Dropdown(
+        id='demo-dropdown',
+        options=[{'label': k, 'value': k} for k in cols_dd],
+        value=cols_dd[0]
+    ),
 
-    output = round(prediction[0], 2)
+    html.Hr(),
+    dcc.Graph(id='display-selected-values'),
 
-    return render_template('index.html', prediction_text='CO2 Emission of the vehicle is :{}'.format(output))
+])
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.callback(
+    dash.dependencies.Output('display-selected-values', 'figure'),
+    [dash.dependencies.Input('demo-dropdown', 'value')])
+    
+def update_output(value):
+    fig = go.Figure()
+    fig.add_trace(go.Choropleth(
+       locations=df['iso_alpha'], # Spatial coordinates
+        z=df[value].astype(float), # Data to be color-coded
+        colorbar_title=value))
+    fig.update_layout(title=f"<b>{value}</b>", title_x=0.5)
+    return fig
+
+if __name__ == '__main__':
+    app.run_server()

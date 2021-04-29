@@ -22,7 +22,7 @@ f1_score, accuracy_score, precision_score, recall_score)
 from sklearn.preprocessing import StandardScaler
 
 #Helper Functions
-from helper import predict, confusion_matrix1, calculate_threshold_values, plot_roc
+from helper import predict, confusion_matrix1, calculate_threshold_values, plot_roc, seeks_run, format_assign
 #Pandas Settings to Display Rows and Cols
 pd.set_option('display.expand_frame_repr', False)
 pd.set_option('display.max_columns', None) 
@@ -113,33 +113,6 @@ if __name__ == '__main__':
     df['Admissions'] = df['Admissions'].astype(str)
     df['Admissions'] = df['Admissions'].apply(lambda x: x.replace(',', ''))
     df['Admissions'] = df['Admissions'].astype(float)
-
-    def format_assign(x):
-        '''
-        Assigns values to Media_Formats column to condense variables
-        '''
-        if 'IMAX' in x or 'IXD'in x or 'DIMX' in x:     
-            return 'IMAX'
-        if 'PLF' in x or 'PLD' in x:
-            return 'PLF'
-        elif '3D' in x:
-            return '3D'
-        else:
-            return '2D'
-
-    def seeks_run(x):
-        '''
-        Assigns values to Seeks Run column to condense variables
-        '''
-        if 'FIRST' in x:
-            return 'FIRST RUN'
-        elif 'LATE' in x:
-            return 'LATE RUN'
-        elif 'SUB' in x:
-            return 'SUB RUN'
-        else:
-            return 'OTHER'
-        # Intermediate Run, Other-Temp Close, IMAX, Art House, Calendar, Classics
 
     df['Media_Formats'] = df['Media_Formats'].astype(str)
     df['Media_Formats'] = df['Media_Formats'].swifter.apply(format_assign)

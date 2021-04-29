@@ -102,7 +102,7 @@ Looking more into detail of the Season breakdown, it is interesting to examine t
 ## Modelling
 To establish a naive baseline for my predictive model, I reset my threshold to be the average Boxoffice from the entire dataset. With this new baseline, I was left with 55k records that had over indexed. None of the features were standardized, nor was any resampling done to address the class imbalance (150k Class 0 Records : 55k Class 1 Records).
 
-Thea Numeric features included in this model are:
+The Numeric features included in this model are:
 * Budget
 * Runtime
 * Number of Locations in First Week

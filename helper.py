@@ -143,4 +143,30 @@ def extract_bow_from_raw_text(text_as_string):
     #tokens_lower = [map(string.lower, sent) for sent in tokens]
 
     return(ret_tokens)
-    
+
+def format_assign(x):
+    '''
+    Assigns values to Media_Formats column to condense variables
+    '''
+    if 'IMAX' in x or 'IXD'in x or 'DIMX' in x:     
+        return 'IMAX'
+    if 'PLF' in x or 'PLD' in x:
+        return 'PLF'
+    elif '3D' in x:
+        return '3D'
+    else:
+        return '2D'
+
+def seeks_run(x):
+    '''
+    Assigns values to Seeks Run column to condense variables
+    '''
+    if 'FIRST' in x:
+        return 'FIRST RUN'
+    elif 'LATE' in x:
+        return 'LATE RUN'
+    elif 'SUB' in x:
+        return 'SUB RUN'
+    else:
+        return 'OTHER'
+    # Intermediate Run, Other-Temp Close, IMAX, Art House, Calendar, Classics
