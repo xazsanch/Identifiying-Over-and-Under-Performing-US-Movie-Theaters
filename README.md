@@ -1,4 +1,4 @@
-# Identifiying Over Performing US MovieTheaters
+# Identifiying Over Performing US Movie Theatres
 
 ## Background
 With the ever-changing theatrical landscape, it is now more important than ever to maximize a Film's Box Office success at a theatre. As the theatrical window (the time period between when a movie is played in theatres to when it ends up on screen at home) is growing smaller and smaller, so does it's chances for generating revenue. A film that could have spent weeks and weeks steadily holding over it's gross week-to-week, now may not get that same chance given today's landscape. 
@@ -16,6 +16,8 @@ The data set for this project was built upon many similar data sources, all prov
 
 ## Data Clean-Up and Preparation
 The bulk of the work for this dataset came from finding a way to neatly tie all of these sources together. They all provided their own unique method of labelling, where one film could be titled in four different ways. I employed a function that utilized the *difflib* Python library, that looked to match a target word from a selection of available choices. Other methods considered were *FuzzyWuzzy* lookup and Levenshtein measurement for vector similarity. Even after employing a matching function, there were still a few datapoints that needed manual intervention and attention. 
+
+In my dataset there were Theatre features, such as what Buying Circuit the theatre belonged to, who the Film Buyer was responsible for that theatre, and who the Payer responsible for paying for the theatre is. In total, there were over 6,000 unique values for these features. I separated them into quantiles, 'High, Medium, and Low' brackets, to add some granularity. I also applied the same logic to the TV Market and CIty features, to bring in some geographic data into the model. Within these quantiles, I was able to One-Hot encode the data, turning them into binary fields. 
 
 To create my 'target feature' for this classification project, I estblished a threshold at each theatre+film level that the Box Office gross needed to surpass to be considered **over-index**. This threshold was based off a theatre's own performance, given a certain Genre. This was a binary classification, where 1 was the case when a theatre+film combination over performed, and 0 was when it did not pass the threshold. 
 
@@ -127,7 +129,7 @@ These models were:
 I wantd to focus on the Precision/Recall tradeoff of my model, to identify the relationship between how my model was identifying False Positives and False Negatives.
 | Model        | LR     | DT     | RF     | GB     |
 |--------------|--------|--------|--------|--------|
-| Recall Score | 0.4436 | 0.4021 | 0.4021 | 0.3700 |
+| Recall Score | 0.4436 | 0.6881 | 0.6882 | 0.6847 |
 
 ![BaselineModel](./images/ROC_baseline_avg.png)
 
@@ -162,7 +164,7 @@ My threshold that made the most sense, came when focusing directly at a Theatre,
 
 | Model        | LR     | DT     | RF     | GB     |
 |--------------|--------|--------|--------|--------|
-| Recall Score | 0.6818 | 0.7302 | 0.7302 | 0.7265 |
+| Recall Score | 0.6873 | 0.7302 | 0.7302 | 0.7265 |
 
 ![Iteration4](./images/ROC_LocGenAvg.png)
 
@@ -172,11 +174,12 @@ With the proper models in place, it was now time to apply some GridSearch'ing to
 
 Though with the searching that I did, my preliminary findings turned out to be less conducive than expected. Further time spent searching wider parameters is needed to help further tune the hyperparameters.
 
+
 | Model        | LR     | DT     | RF     | GB     |
 |--------------|--------|--------|--------|--------|
-| Recall Score | 0.6816 | 0.7210 | 0.7241 | 0.7301 |
+| Recall Score | 0.6783 | 0.7001 | 0.7231 | 0.7310 |
 
-![Iteration4 with Grid Search](./images/ROC_LocGenAvg_GS.png)
+![Iteration4 with Grid Search](./images/ROC_Final_Unseen.png)
 
 ### Threshold - Location's Average, by Genre (with GridSearch, Undersampled data)
 
@@ -189,7 +192,26 @@ Lastly, I applied Undersampling to the data set, to see how it would affec the m
 
 ![Iteration4 Undersampled with Grid Search](./images/ROC_LocGenAvg_Un.png)
 
-Utilizing the RF model without any GridSearch hyperparameters, I was able to establish a Confusion Matrix, set a threshold of 0.5. Because each individual theatre operates within it's own constraints of pricing, there were too many moving targets to apply a blanket cost-profit matrix to the data set. 
+### Validation Dataset
+
+With my best model in place (Gradient Boosting with GridSearch, I applied an unseen set of data to validate my model's performance. My validationg test data set scored extremely close to my Test data. 
+
+Though I am a bit skeptical of how similar the performance is, the result may lend itself to the structure of the data that is being inputted into the model. Further iterations are needed to further validate this score. 
+
+Hyperparameters:
+* Learning Rate = 0.05
+* Max Depth = 4
+* Minimum Leaf Samples = 6
+* Number of Estimators = 200
+
+| Model        | Test   | Unseen Data |
+|--------------|--------|--------|
+| Recall Score | 0.7310 | 0.7281 | 
+
+
+![Unseen Validation](./images/ROC_Final_GS_Unseen.png)
+
+Utilizing the GB model with hyperparameters, I was able to establish a Confusion Matrix, set a threshold of 0.5. Because each individual theatre operates within it's own constraints of pricing, there were too many moving targets to apply a blanket cost-profit matrix to the data set. 
 
 The bottom left of this matrix shows the amount of False Negatives, values that were predicted to be false, when they were in fact, true. This was the area that I wanted to minimize by focusing on the recall metric. 
 
@@ -200,6 +222,19 @@ Of the Predicted False cases, I am identifying 87% of those values correctly.
 
 ![Confusion Matrix](./images/Confusion_Matrix.png)
 
+
+## Feature Engineering
+Looking at my best model, I analyzed what Features were deemed 'important' by the model. There are two methods for identifying these features. The first one looks at how 'frequent' the feature appears at a decision point within the model. Typically, features with a large range of continuous values tend to be present in more decision points, as there are more values to split upon. 
+
+It's interesting that the Thanksgiving-Season category seems to lead all other features. Many of the Categorical features were deemed 'important'.
+
+![Feature Importance](./images/Feature_Importance.png)
+
+Though this gives me some idea of what features are important to the model, I also looked at what Feature's decreased the accuracy of the model when they were removed. The idea behind this is that a feature that is 'more important' to the model, will greatly affect the model's performance if it was removed. A feature that is less important, has less impact on the model's performance.
+
+![Mean Decrease Accuracy](./images/Mean_Decrease_Accuracy.png)
+
+For the list of features in Mean Decrease Accuracy, a film's YT Trailer Views, # of Runs, and budget were the most important feature's for the model's accuracy. These features varied quite a lot in their ranges, so it makes sense that without this level of data, we lose a lot of signal within the rows.
 
 ## Movie Clustering
 With my model soundly in place, I looked to employ unsupervised learning techniques on the Movie Meta data portion available to me, and try to find a way to cluster the data in a way that made sense. I was hoping for this method to help give me new insight into how movie's should be grouped, as opposed to just basing them around their Genre. 
@@ -258,9 +293,11 @@ The biggest roadblocks and the bulk of the time-sink I faced came from organizin
 I also went through many iterations of how to set the threshold for my Over Index target. Through the help of the instructors, I was able to establish the right goal that made the most sense for my business case. If I had gotten to this solution sooner, I would have been able to divert my time and energy elsewhere. 
 
 ## Next Steps
-Next steps for this project would be to perform some type of Clustering or grouping based on Theatre locations. There were different ways for me to slice the geographical information that were not fully utilized as I sought to iterate through a minimum viable product. In the end, my final model only utilized a theatre's Division, which was broken down into four large categories (Eastern, Western, Southern, Canadian). There are many different segments of Film Buyer's, Buying Circuits, and Payer's that could be leveraged into different quantile's depending on their performance. 
+Next steps for this project would be to perform some type of Clustering or grouping based on Theatre locations. There were different ways for me to slice the geographical information that were not fully utilized as I sought to iterate through a minimum viable product. I used a naive breakdown for separating the categorical theatrical data into HML quantiles, but there could be more ways for my data to be split up. 
 
 Ultimately, I envisioned a web application for this project as well. A user could input one of the preset clusterings that I modelled, and what would return would be the Theatre names of the Top 10 Theatres most likely to Over Index (not the most boxoffice). This would be displayed on a map to show the geographical space and location of the theatres. 
+
+![WebApp](./images/webapp.png)
 
 Geography was also something I wanted the model to handle, but did not have the time to employ. If my model recommends 2 theatres right next to each other, pratically speaking, it may be hard for *both* of those theatres to over perform, as they may steal business from each other. 
 
